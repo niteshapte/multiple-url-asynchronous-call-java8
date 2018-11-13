@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,10 +24,9 @@ public class AsyncExecutor {
 		List<String> listOfURLs = Arrays.asList(urls);
 		
 		ExecutorServiceProvider<Void> executorServiceProvider = new ExecutorServiceProvider<Void>();
-		ExecutorService service = executorServiceProvider.getExecutorService(5);
-		ExecutorCompletionService<Void> executorCompletionService = new ExecutorCompletionService<Void>(service);
+		ExecutorCompletionService<Void> executorCompletionService = new ExecutorCompletionService<Void>(executorServiceProvider.getExecutorService(5));
 		
-		listOfURLs.forEach(url -> {
+		listOfURLs.stream().filter(f -> f != null && !f.equals("")).forEach(url -> {
 			Callable<Void> worker = () -> {
 				callIndividualURLs(url);
 				return null;
@@ -40,7 +38,7 @@ public class AsyncExecutor {
 			}
 		});
 		executorServiceProvider.getResult(listOfURLs.size(), executorCompletionService, 5, TimeUnit.SECONDS);
-		executorServiceProvider.shutdownAndAwaitTermination(service);
+		executorServiceProvider.shutdownExecutorService();
 	}
 	
 	/**
