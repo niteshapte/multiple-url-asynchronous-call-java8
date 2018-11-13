@@ -18,14 +18,14 @@ public class ExecutorServiceProvider<T> {
 
 	/** The thread pool executor. */
 	private ThreadPoolExecutor threadPoolExecutor;
-
+	
 	/**
 	 * Gets the executor service.
 	 *
 	 * @return the executor service
 	 */
 	public ExecutorService getExecutorService() {
-		return (null == threadPoolExecutor || threadPoolExecutor.isShutdown()) ? (ThreadPoolExecutor) Executors.newFixedThreadPool(5) : threadPoolExecutor;
+		return threadPoolExecutor = (null == threadPoolExecutor || threadPoolExecutor.isShutdown()) ? (ThreadPoolExecutor) Executors.newFixedThreadPool(5) : threadPoolExecutor;
 	}
 
 	/**
@@ -35,7 +35,7 @@ public class ExecutorServiceProvider<T> {
 	 * @return the executor service
 	 */
 	public ExecutorService getExecutorService(int threadCount) {
-		return (null == threadPoolExecutor || threadPoolExecutor.isShutdown()) ? (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount) : threadPoolExecutor;
+		return threadPoolExecutor = (null == threadPoolExecutor || threadPoolExecutor.isShutdown()) ? (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount) : threadPoolExecutor;
 	}
 
 	/**
@@ -97,16 +97,17 @@ public class ExecutorServiceProvider<T> {
 	 *
 	 * @param pool the pool
 	 */
-	public void shutdownAndAwaitTermination(ExecutorService executorService) {
-		executorService.shutdown();
+	public void shutdownAndAwaitTermination() {
+		threadPoolExecutor.shutdown();
 	    try {
-	        if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-	        	executorService.shutdownNow();
-	            if (!executorService.awaitTermination(60, TimeUnit.SECONDS))
-	                System.err.println("Pool did not terminate");
+	        if (!threadPoolExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+	        	threadPoolExecutor.shutdownNow();
+	            if (!threadPoolExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+	            	System.err.println("Pool did not terminate");
+	            }
 	        }
 	    } catch (InterruptedException ie) {
-	    	executorService.shutdownNow();
+	    	threadPoolExecutor.shutdownNow();
 	        Thread.currentThread().interrupt();
 	    }
 	}
